@@ -3,6 +3,12 @@
 # 简介 #
 Burp Suite 是一款由英国 PortSwigger Web Security 公司开发的 Web 应用安全测试工具，被广泛用于网络安全领域，尤其是 Web 渗透测试和漏洞评估。它集成了多个功能模块，能帮助安全测试人员、渗透测试工程师或开发者检测 Web 应用中的安全漏洞，如 SQL 注入、跨站脚本（XSS）、 CSRF（跨站请求伪造）等。
 
+因为github上传文件不能大于25m，我的文件里有的已经大于25m所以这里用百度网盘分享，链接会一直有效
+
+通过网盘分享的文件：BurpSuitePro.zip
+链接: https://pan.baidu.com/s/1Iinaci0HRgcNuEZRKvNwNw?pwd=tk4i 提取码: tk4i 
+
+
 
 # 第一步下载 #
 下载Burp Suite Pro 按照常规步骤安装
