@@ -1,6 +1,4 @@
-# study-way #
-sjszhdg的学习渗透的过程
-
+# ubantu 上 docker的搭建 #
 
 # linux ubantu docker搭建 #
 首先要有linux先装好ubantu，我这里用的是24.04版本，20.04以上都行。
