@@ -1,5 +1,4 @@
-# 渗透 #
-# proxifier 与burpsuite联动抓包微信小程序 #
+
 另一个支线说过了burpsuite pro 的破解，这次用的proxifier普通的也够用但是还是给大家提供一个key
 
 proxifiter还是正常程序下载一下
