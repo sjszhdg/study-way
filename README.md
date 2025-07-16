@@ -1,4 +1,5 @@
-<img width="932" height="515" alt="image" src="https://github.com/user-attachments/assets/ff8005b5-69ac-4904-97f4-32107facb5b1" /># xss-labs #
+
+# xss-labs #
 下载xss-labs
 
 将他转移到xp的www目录下
