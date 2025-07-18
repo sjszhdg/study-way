@@ -1,3 +1,25 @@
+# xss # 
+跨站脚本攻击XSS(Cross Site Scripting)，为了不和层叠样式表(Cascading Style Sheets, CSS)的缩写混淆，故将跨站脚本攻击缩写为XSS。恶意攻击者往Web页面里插入恶意Script代码，当用户浏览该页之时，嵌入其中Web里面的Script代码会被执行，从而达到恶意攻击用户的目的。XSS攻击针对的是用户层面的攻击！
+
+# xss分类 #
+1.反射性xss
+反射型XSS 是非持久性、参数型的跨站脚本。反射型XSS 的JS 代码在Web 应用的参数（变量）中，如搜索框的反射型XSS。在搜索框中，提交PoC[scriptalert(/xss/)/script]，点击搜索，即可触发反射型XSS。 注意到，我们提交的poc 会出现在search.php 页面的keywords 参数中。
+
+<img width="953" height="692" alt="image" src="https://github.com/user-attachments/assets/ea04785f-c40e-45f1-80bc-344df4d13fb9" />
+
+
+2.存储型xss 
+
+存储型XSS 是持久性跨站脚本。持久性体现在XSS 代码不是在某个参数（变量）中，而是写进数据库或文件等可以永久保存数据的介质中。存储型XSS 通常发生在留言板等地方。我们在留言板位置留言，将恶意代码写进数据库中。此时，我们只完成了第一步，将恶意代码写入数据库。因为XSS 使用的JS 代码，JS 代码的运行环境是浏览器，所以需要浏览器从服务器载入恶意的XSS 代码，才能真正触发XSS。此时，需要我们模拟网站后台管理员的身份，查看留言。
+
+
+<img width="966" height="700" alt="image" src="https://github.com/user-attachments/assets/0b117bbf-584e-4747-a475-4428f71da953" />
+
+3.DOM的xss 
+
+DOM XSS 比较特殊。owasp 关于DOM 型号XSS 的定义是基于DOM 的XSS 是一种XSS 攻击，其中攻击的payload由于修改受害者浏览器页面的DOM 树而执行的。其特殊的地方就是payload 在浏览器本地修改DOM 树而执行， 并不会传到服务器上，这也就使得DOM XSS 比较难以检测。
+
+
 
 # xss-labs #
 下载xss-labs
@@ -283,6 +305,35 @@ referer: " onfocuse="alert()" autofocuse="" type="text
 <img width="900" height="853" alt="image" src="https://github.com/user-attachments/assets/d9e42500-f753-4ce4-9ac6-4a9eea6e0aaa" />
 
 
+# level-12 #
+<img width="933" height="901" alt="image" src="https://github.com/user-attachments/assets/a4945cfc-150e-47cb-859a-835b1539e69c" />
+
+查看网页源码
+
+<img width="1209" height="662" alt="image" src="https://github.com/user-attachments/assets/24c228b3-878f-491d-8e21-4e97bf792bcb" />
+
+这里和11关差不多我们来用命令测试一下
+```
+t_link="%20type="text%20&t_history="%20type="text%20&t_sort="%20type="text%20&t_ua="%20type="text
+```
+<img width="1221" height="303" alt="image" src="https://github.com/user-attachments/assets/8691d808-c54b-44f3-a874-3f3ff6f3de99" />
+
+t_sort的命令是进去了的，只不过和11关一样被实体化了，我们来看一下源代码。
+
+<img width="1378" height="1084" alt="image" src="https://github.com/user-attachments/assets/b34573b7-0a91-4c91-90c8-1c8be9a5d956" />
+
+这里和11关一样的只不过是第四个的元素名字变量一下和http变了一下，我们直接用burpsuite抓包，修改一下试试。
+
+<img width="1476" height="725" alt="image" src="https://github.com/user-attachments/assets/8f954206-761f-47f6-af60-ba5c756327bd" />
+
+这里也是成功了
+<img width="1014" height="894" alt="image" src="https://github.com/user-attachments/assets/66a12cbe-d598-4c2a-979e-ae0a8b01304c" />
+
+
+
+
+
+
 # xss.PwnFunction #
 
 准备访问xss.pwnfunction.com时发现访问不了，开vpn也不行
@@ -322,7 +373,163 @@ hugo server --bind 0.0.0.0 --baseURL http://192.168.137.135/
 ```
 http://<ubantu的ip>:1313
 ```
+
 <img width="2247" height="1309" alt="image" src="https://github.com/user-attachments/assets/aa185bfc-c9da-45c8-af73-ae2ba0494775" />
 
 
+# 原型链污染 #
 
+原型和原型链都是来源于对象而服务于对象的概念，所以我们要先明确一点：
+JavaScript中一切引用类型都是对象，对象就是属性的集合。
+Array类型、Function类型、Object类型、Date类型、RegExp类型等都是引用类型。
+也就是说 数组是对象、函数是对象、正则是对象、对象还是对象。
+
+原型和原型链到底是什么呢，我学的时候，也懵逼了好长时间。
+定义：每个 JavaScript 函数（构造函数）都有一个 prototype 属性，指向一个对象（原型对象）。
+作用就是为了共享属性和方法，所有通过该构造函数创建的实例都能访问原型上的属性和方法。
+
+这里的原型对象是什么，实例对象有是什么？
+
+
+我们看一个例子
+```
+function Person(name) {
+  this.name = name; // 实例属性（每个实例独立）
+}
+
+const person1 = new Person("Alice"); // person1 是实例对象
+const person2 = new Person("Bob");   // person2 是另一个实例对象
+```
+实例对象就是这么简单，那原型对象呢
+```
+function Animal(name) {
+  this.name = name;
+}
+Animal.prototype.color = 'white';
+
+var cat1 = new Animal('大毛');
+var cat2 = new Animal('二毛');
+
+cat1.color // 'white'
+cat2.color // 'white'
+```
+这个例子里cat1和cat2是实例对象，图中的animal的prototype就是cat1和cat2的原型对象
+JavaScript 规定，每个函数都有一个prototype属性，指向一个对象。就是object
+
+```
+cat1.color--->Animal.prototype---->aaaaaaa.prototype------>xxxxx.------->Object.prototype---->null
+```
+如果一层层地上溯，所有对象的原型最终都可以上溯到`Object.prototype`，即`Object`构造函数的`prototype`属性。也就是说，所有对象都继承了`Object.prototype`的属性。这就是所有对象都有`valueOf`和`toString`方法的原因，因为这是从`Object.prototype`继承的。
+那么，`Object.prototype`对象有没有它的原型呢？回答是`Object.prototype`的原型是`null`。`null`没有任何属性和方法，也没有自己的原型。因此，原型链的尽头就是`null`。
+
+# prototype和__proto__和constructor 有什么区别呢 #
+
+# 1，prototype #
+每个函数（Function）默认拥有的属性，指向一个对象（原型对象）。
+
+当函数被用作构造函数（通过 new 调用）时，新创建的对象会继承原型对象的属性和方法。
+
+后面将他和其他两个结合起来说
+
+# 2.__proto__ #
+每个对象（包括数组、函数）默认拥有的属性，指向创建它的构造函数的 prototype 对象。
+
+JavaScript 通过 __proto__ 实现原型链查找，当访问一个对象的属性时，引擎会先查找对象本身，再通过 __proto__ 逐级向上查找。
+
+```
+const person = new Person("Alice");
+console.log(person.__proto__ === Person.prototype); // true
+```
+
+# 3.constructor #
+每个原型对象默认拥有的属性，指向创建该原型的构造函数
+用于标识对象的 “类型”，或通过它创建新实例。
+
+`prototype`对象有一个`constructor`属性，默认指向`prototype`对象所在的构造函数。
+```
+function P() {}
+P.prototype.constructor === P // true
+```
+由于`constructor`属性定义在`prototype`对象上面，意味着可以被所有实例对象继承。
+```
+function P大() {}
+var p小 = new P大();
+
+//应该有这个属性吗
+p小.constructor === P大 // true
+
+p小.constructor === P大.prototype.constructor // true
+```
+这个还是非常清晰的
+
+上面代码中，`p`是构造函数`P`的实例对象，但是`p`自身没有`constructor`属性，该属性其实是读取原型链上面的`P.prototype.constructor`属性。
+
+`constructor`属性的作用是，可以得知某个实例对象，到底是哪一个构造函数产生的。
+
+
+`constructor`属性表示原型对象与构造函数之间的关联关系，如果修改了原型对象，一般会同时修改`constructor`属性，防止引用的时候出错。
+
+```
+function Person(name) {
+  this.name = name;
+}
+
+Person.prototype.constructor === Person // true
+
+Person.prototype = {
+  method: function () {}
+};
+
+Person.prototype.constructor === Person // false
+Person.prototype.constructor === Object // true
+```
+上面代码中，构造函数`Person`的原型对象改掉了，但是没有修改`constructor`属性，导致这个属性不再指向`Person`。由于`Person`的新原型是一个普通对象，而普通对象的`constructor`属性指向`Object`构造函数，导致`Person.prototype.constructor`变成了`Object`。
+应该能看拿出来哪里修改了原型对象吧，Person.prototype = { method 这里修改了（我就不写玩了OVO），这个看懂了后面都清晰的。
+
+所以，修改原型对象时，一般要同时修改`constructor`属性的指向。
+```
+C.prototype.method1 = function (...) { ... };
+```
+这个方法比较好，建议用这个，这个比较清晰，易于理解
+
+```
+//定义基类animal
+function Animal(type) {
+  this.type = type;
+}
+Animal.prototype.move = function() {
+  console.log(`${this.type} is moving`);
+};
+//定义子类dog
+function Dog(name) {
+  this.name = name;
+  Animal.call(this, "Dog"); // 继承属性
+}
+// 设置 Dog 的原型为 Animal 的实例
+Dog.prototype = Object.create(Animal.prototype);
+// 修复 constructor
+Dog.prototype.constructor = Dog;
+Dog.prototype.bark = function() {
+  console.log("Woof!");
+};
+
+const dog = new Dog("Buddy");
+dog.move(); // 输出: Dog is moving（通过原型链访问 Animal.prototype）
+dog.bark(); // 输出: Woof!
+console.log(dog.constructor === Dog); // true
+```
+
+Animal 构造函数：创建对象时设置 type 属性（如 Dog、Cat）。
+
+Animal.prototype.move：所有 Animal 实例共享的方法，通过原型链访问。
+
+Dog 构造函数：
+    设置 name 属性（如 "Buddy"）。
+    通过 Animal.call(this, "Dog") 调用父类构造函数，将 type 设置为 "Dog"。
+    效果：每个 Dog 实例都有 name 和 type 属性。
+
+Object.create(Animal.prototype):
+    创建一个新对象，其 __proto__ 指向 Animal.prototype。
+    将该对象赋值给 Dog.prototype，使 Dog 实例可以访问 Animal.prototype 的方法（如 move()）。
+    原型链结构：
+    dog.__proto__ ---> Dog.prototype ---> Animal.prototype ---> Object.prototype。
